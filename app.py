@@ -1,6 +1,4 @@
-في هذا مشروع. اعطوني هذا 
-https://xza-add-itemss.onrender.com
-تقدر تكمل رابط 
+
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 from flask import Flask, request, jsonify
