@@ -1,6 +1,7 @@
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 from flask import Flask, request, jsonify
 import requests
+import os
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from google.protobuf import descriptor as _descriptor
@@ -39,17 +40,16 @@ MainMessage = _globals["MainMessage"]
 @app.route("/send_items", methods=["POST"])
 def send_items():
     try:
-        # Step 1: استلام البيانات من المستخدم
         data = request.get_json()
         access = data.get("access")
-        item_ids = data.get("item_ids")  # ← لائحة IDs
+        item_ids = data.get("item_ids")  
         if not access or not item_ids:
             return jsonify({"error": "الرجاء إدخال access و item_ids"}), 400
 
         if not isinstance(item_ids, list):
             return jsonify({"error": "item_ids يجب أن تكون List"}), 400
 
-        # Step 2: تحويل access → JWT
+        # تحويل access → JWT
         jwt_api_url = f"https://projects-fox-x-get.vercel.app/api/{access}"
         jwt_response = requests.get(jwt_api_url)
 
@@ -58,7 +58,7 @@ def send_items():
 
         jwt_token = jwt_response.text.strip()
 
-        # Step 3: تكوين البيانات
+        # تكوين البيانات
         msg = MainMessage()
         msg.field_1 = 1
         container1 = msg.field_2.add()
@@ -76,8 +76,7 @@ def send_items():
         cipher = AES.new(key, AES.MODE_CBC, iv)
         encrypted_data = cipher.encrypt(padded_data)
 
-        #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        # Step 4: إرسال الطلب
+        # إرسال الطلب
         url = "https://clientbp.ggblueshark.com/SetPlayerGalleryShowInfo"
         headers = {
             "Expect": "100-continue",
@@ -86,7 +85,7 @@ def send_items():
             "X-GA": "v1 1",
             "ReleaseVersion": freefire_version,
             "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; SM-A305F Build/RP1A.200720.012)",
+            "User-Agent": "Dalvik/2.1.0",
             "Host": "clientbp.ggblueshark.com",
             "Connection": "Keep-Alive",
             "Accept-Encoding": "gzip"
@@ -113,4 +112,5 @@ def send_items():
 
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3000)
+    port = int(os.environ.get("PORT", 5000))  # Render يحدد البورت
+    app.run(host="0.0.0.0", port=port)
